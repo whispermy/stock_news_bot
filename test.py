@@ -27,6 +27,7 @@ import json
 from datetime import datetime
 import time
 import locale 
+from selenium import webdriver
 
 def post_message(token, channel, text):
     response = requests.post("https://slack.com/api/chat.postMessage",
@@ -45,22 +46,47 @@ def post_message(token, channel, text):
 #     # print("dictionary")
 #     # print(json.dumps(diction))
 #     print(response)
- 
+ # -----------definition and basic setting-----------
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors')
 
-myToken = "slack-bot-token"
+driver = webdriver.Chrome(options=options)
+
+# setting locale to use Korean
+locale.setlocale(locale.LC_ALL, '')
+
+myToken = "mytoken"
+
+url = "https://finviz.com/map.ashx"
+driver.get(url)
+time.sleep(5)
+xpath_val = "/html/body/div[2]/div/div[1]/div[3]/div/a[1]"
+driver.find_element_by_xpath(xpath_val).click()
+time.sleep(10)
+pict = driver.find_element_by_class_name("export-image").get_attribute("src")
+# driver.switch_to_frame(iFrame)
+# xpath_val = "/html/body/div[2]/div/div[4]/div/div/form/div[2]/div/input"
+
+
+
+print(pict)
+# /html/body/div[2]/div/div[4]/div/div/form/div[2]/div/input
+
+
 # dic = {'channel': '#general', 'text': ['hello\nhelllll\nhi']}
 # dic['text'].append(0000)
 
 # print(dic)
 
-print(locale.getlocale())
-locale.setlocale(locale.LC_ALL, '')
-print(locale.getlocale())
+# print(locale.getlocale())
+# locale.setlocale(locale.LC_ALL, '')
+# print(locale.getlocale())
 
-today = datetime.now().date()
-print(today)
-print(today.strftime('%Y. %m. %d.'))
-print(today.strftime('%Y년 %m월 %d일 %A'))
+# today = datetime.now().date()
+# print(today)
+# print(today.strftime('%Y. %m. %d.'))
+# print(today.strftime('%Y년 %m월 %d일 %A'))
 
 # print(today.strftime('%Y년 %m월 %d일 %A'.encode('unicode-escape').decode()
 #     ).encode().decode('unicode-escape')
@@ -75,7 +101,7 @@ print(today.strftime('%Y년 %m월 %d일 %A'))
 #     slack_msg = slack_msg+'\n'+n
 # print(slack_msg)
 
-# post_message(myToken,'#general',slack_msg)
+post_message(myToken,'#general',pict)
 
 # post_message2(myToken,dic)
 

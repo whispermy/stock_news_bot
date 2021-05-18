@@ -25,7 +25,7 @@ driver = webdriver.Chrome(options=options)
 locale.setlocale(locale.LC_ALL, '')
 
 # setting slack token
-MYTOKEN = "my token"
+MYTOKEN = "mytoken"
 
 def post_message(token, channel, text):
     ''' this function send slack message
@@ -82,7 +82,7 @@ def get_articles(news_msg):
         section_name = driver.find_element_by_xpath(xpath_val).text
         news_list.append('\n\n---------------- '+section_name+' ------------------')
 
-        # set article row
+        # set article rowvnchs
         selectarticle_ul = 1
         selectarticle_li = 1
         subpage = 2
@@ -133,17 +133,37 @@ def get_articles(news_msg):
                 selectarticle_li += 1
 
     time.sleep(1)
-    driver.close()
+    # driver.close()
     news_list.append('\n\n---------------- 뉴스 끝 ------------------')
-    print("DEBUG MESSAGE: page closed.")
+    # news_list.append('https://finviz.com/map.ashx')
+    # print("DEBUG MESSAGE: page closed.")
     # print(news_list)
 
+    # get US stock data 
+    time.sleep(1)
+    news_list.append('\n\n------------- 미 증시 map ------------------')
+    # url = "https://finviz.com/map.ashx"
+    # driver.get(url)
+    # time.sleep(1)
+    # xpath_val = "/html/body/div[2]/div/div[1]/div[3]/div/a[1]"
+    # driver.find_element_by_xpath(xpath_val).click()
+    # time.sleep(5)
+    # pict = driver.find_element_by_class_name("export-image").get_attribute("src")
+    # news_list.append(pict)
+    pict = "https://finviz.com/map.ashx"
+    news_list.append(pict)
+
+    driver.close()
+    print("DEBUG MESSAGE: page closed.")
+    news_list.append('\n\n------------- 미 증시 map 끝 ------------------')
 
     for msg in news_list:
         news_msg = news_msg+'\n'+msg
     print(news_msg)
 
     return news_msg
+
+    
 
 # create variable
 NEWS = ''
