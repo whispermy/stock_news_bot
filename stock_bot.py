@@ -25,7 +25,7 @@ driver = webdriver.Chrome(options=options)
 locale.setlocale(locale.LC_ALL, '')
 
 # setting slack token
-MYTOKEN = "mytoken"
+MYTOKEN = "yy"
 
 def post_message(token, channel, text):
     ''' this function send slack message
@@ -78,7 +78,7 @@ def get_articles(news_msg):
         time.sleep(3)
 
         # save the section name
-        xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/div[1]/h2"
+        xpath_val = "/html/body/div/div[3]/div[1]/div[1]/div[1]/h2"
         section_name = driver.find_element_by_xpath(xpath_val).text
         news_list.append('\n\n---------------- '+section_name+' ------------------')
 
@@ -90,7 +90,7 @@ def get_articles(news_msg):
 
         while True:
             if selectarticle_ul < 5:
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[2]/span"
+                xpath_val = "/html/body/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[2]/span"
                 articletime = driver.find_element_by_xpath(xpath_val).text
                 parcetime = datetime.strptime(articletime, "%Y.%m.%d %H:%M")
                 date_diff = now - parcetime
@@ -104,7 +104,7 @@ def get_articles(news_msg):
                     break
 
                 # 제목 불러오기 및 스트링 저장, 배열 저장 (슬랙 메세지 만들기)
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[1]/h3/a"
+                xpath_val = "/html/body/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[1]/h3/a"
                 news_title = driver.find_element_by_xpath(xpath_val).text
                 news_list.append(news_title)
                 print("DEBUG MESSAGE: 기사 제목:'",news_title,"' list added.")
@@ -116,7 +116,7 @@ def get_articles(news_msg):
                 # url change or click next page
                 subpage += 1
                 # url_sub_temp = url_temp + "?page" + str(subpage)
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/div[2]/a["+str(subpage)+"]"
+                xpath_val = "/html/body/div/div[3]/div[1]/div[1]/div[2]/a["+str(subpage)+"]"
                 elem = driver.find_element_by_xpath(xpath_val)
                 driver.execute_script("arguments[0].click();", elem)
 
