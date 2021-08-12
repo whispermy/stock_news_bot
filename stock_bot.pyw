@@ -18,6 +18,7 @@ from selenium import webdriver
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
+options.add_argument("headless")
 
 driver = webdriver.Chrome(options=options)
 
@@ -25,7 +26,7 @@ driver = webdriver.Chrome(options=options)
 locale.setlocale(locale.LC_ALL, '')
 
 # setting slack token
-MYTOKEN = ""
+MYTOKEN = "mytoken"
 
 def post_message(token, channel, text):
     ''' this function send slack message
@@ -173,4 +174,5 @@ post_message(MYTOKEN,'#general',get_articles(NEWS))
 print("DEBUG MESSAGE: send slack message:",NEWS)
 
 print("DEBUG MESSAGE: program closed.")
+driver.quit()
 os._exit(1)
