@@ -26,7 +26,7 @@ driver = webdriver.Chrome('chromedriver.exe',options=options)
 locale.setlocale(locale.LC_ALL, '')
 
 # setting slack token
-MYTOKEN = "mytoken"
+MYTOKEN = ""
 
 def post_message(token, channel, text):
     ''' this function send slack message

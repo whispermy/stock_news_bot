@@ -9,23 +9,37 @@ import os
 import locale
 import requests
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+import chromedriver_autoinstaller as AutoChrome
+import shutil
 # from bs4 import BeautifulSoup
 # from slack_sdk import WebClient
 # from slack_sdk.errors import SlackApiError
 # import json
 
-# -----------definition and basic setting-----------
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--ignore-ssl-errors')
+def chromedriver_update():
+    ''' this function auto update chrome driver
+     : there is no arguments
+    '''
+    chrome_ver = AutoChrome.get_chrome_version().split('.')[0]
 
-driver = webdriver.Chrome(options=options)
+    current_list = os.listdir(os.getcwd()) 			
+    chrome_list = []
+    for i in current_list:
+        path = os.path.join(os.getcwd(), i) 			
+        if os.path.isdir(path): 				
+            if 'chromedriver.exe' in os.listdir(path): 		
+                chrome_list.append(i) 				
 
-# setting locale to use Korean
-locale.setlocale(locale.LC_ALL, '')
+    old_version = list(set(chrome_list)-set([chrome_ver])) 	
 
-# setting slack token
-MYTOKEN = "mytoken"
+    for i in old_version:
+        path = os.path.join(os.getcwd(),i) 			
+        shutil.rmtree(path) 					
+
+    if not chrome_ver in current_list: 				
+        AutoChrome.install(True) 				
+    else : pass 					
 
 def post_message(token, channel, text):
     ''' this function send slack message
@@ -44,12 +58,19 @@ def get_articles(news_msg):
 
      : news_msg: news text variable. it must be 'str' type variable.
     '''
+    news_list = []
+    now = datetime.now()
+    today = now.date().strftime('%Y년 %m월 %d일 %A')
+    news_list.append(today+' 경제 뉴스 모음\n\n\n')
+    
     # setting url
-    url = "https://www.hankyung.com/"
+    url = "https://www.hankyung.com/all-news/"
 
-    # open finance page
-    url = url + "finance/"
+    url_sub = ['economy', 'finance', 'realestate', 'it']
+    
     driver.get(url)
+    driver.find_element(By.XPATH, '/html/body/div[1]/div/div[2]/div[1]/div[1]/div[2]/ul/li[2]/a').click()
+    
     print(driver.window_handles)
     time.sleep(5)
 
@@ -59,101 +80,31 @@ def get_articles(news_msg):
         if handle != main[0]:
             driver.switch_to.window(handle)
             driver.close()
-
+    
     print("DEBUG Message: All popup closed.\n")
-
-    # page initializing
     driver.switch_to.window(main[0])
-    now = datetime.now()
-    news_list = []
-
-    today = now.date().strftime('%Y년 %m월 %d일 %A')
-    news_list.append(today+' 경제 뉴스 모음\n\n\n')
-    # page_num = 101
-
-    for page_num in range(102,112):
-        # move section of topic
-        url_temp = url + str(page_num).zfill(4)
+    
+    for i in url_sub:
+        url_temp = url + i
         driver.get(url_temp)
-        time.sleep(3)
-
-        # save the section name
-        xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/div[1]/h2"
-        # xpath_val = "/html/body/div/div[3]/div[1]/div[1]/div[1]/h2"
-        section_name = driver.find_element_by_xpath(xpath_val).text
-        news_list.append('\n\n---------------- '+section_name+' ------------------')
-
-        # set article rowvnchs
-        selectarticle_ul = 1
-        selectarticle_li = 1
-        subpage = 2
-        day_diff = 0
-
-        while True:
-            if selectarticle_ul < 5:
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[2]/span"
-                # xpath_val = "/html/body/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[2]/span"
-                articletime = driver.find_element_by_xpath(xpath_val).text
-                parcetime = datetime.strptime(articletime, "%Y.%m.%d %H:%M")
-                date_diff = now - parcetime
-                day_diff = date_diff.days
-                print("DEBUG MESSAGE: 일 수 차이:",day_diff," Parce Date:",parcetime," ul:",selectarticle_ul," li:",selectarticle_li," page:",page_num," subpage:",subpage)	# 일 수 차이 : 15
-                if day_diff > 0:
-                    if selectarticle_ul == 1 and selectarticle_li == 1 and subpage == 2:
-                        print("DEBUG MESSAGE: This section has no new article.")
-                    # 1페이지 안에 하루치 뉴스 다 있는 경우
-                    # 그니까 다음 섹션 넘어가야 함.
-                    break
-
-                # 제목 불러오기 및 스트링 저장, 배열 저장 (슬랙 메세지 만들기)
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[1]/h3/a"
-                # xpath_val = "/html/body/div/div[3]/div[1]/div[1]/ul["+str(selectarticle_ul)+"]/li["+str(selectarticle_li)+"]/div[1]/h3/a"
-                news_title = driver.find_element_by_xpath(xpath_val).text
-                news_list.append(news_title)
-                print("DEBUG MESSAGE: 기사 제목:'",news_title,"' list added.")
-                news_url = driver.find_element_by_xpath(xpath_val).get_attribute("href")
-                news_list.append(news_url)
-                print("DEBUG MESSAGE: 기사 URL:'",news_url,"' list added.")
-
-            if selectarticle_ul >= 5:
-                # url change or click next page
-                subpage += 1
-                # url_sub_temp = url_temp + "?page" + str(subpage)
-                xpath_val = "/html/body/div[1]/div/div[3]/div[1]/div[1]/div[2]/a["+str(subpage)+"]"
-                # xpath_val = "/html/body/div/div[3]/div[1]/div[1]/div[2]/a["+str(subpage)+"]"
-                elem = driver.find_element_by_xpath(xpath_val)
-                driver.execute_script("arguments[0].click();", elem)
-
-                #driver.get(url_sub_temp)
-                time.sleep(1)
-                selectarticle_ul = 1
-                selectarticle_li = 1
-                # 1페이지 안에 하루치 다 모자란 경우
-                # 같은 섹션 2페이지로 넘어감
-            elif selectarticle_li == 5:
-                selectarticle_li = 1
-                selectarticle_ul += 1
-            else:
-                selectarticle_li += 1
+        news_list.append('\n\n---------------- '+i+' ------------------')
+        subject = driver.find_element(By.CLASS_NAME, 'day_article')
+        subject_lis = subject.find_elements(By.TAG_NAME, 'li')
+        
+        for li in subject_lis:
+            aTag = li.find_element(By.TAG_NAME,'a')
+            href = aTag.get_attribute('href')
+            news_list.append(aTag.text)
+            news_list.append(href)
+            # print("기사제목: " + aTag.text)
+            # print("기사링크: " + href)
 
     time.sleep(1)
-    # driver.close()
     news_list.append('\n\n---------------- 뉴스 끝 ------------------')
-    # news_list.append('https://finviz.com/map.ashx')
-    # print("DEBUG MESSAGE: page closed.")
-    # print(news_list)
 
     # get US stock data 
     time.sleep(1)
     news_list.append('\n\n------------- 미 증시 map ------------------')
-    # url = "https://finviz.com/map.ashx"
-    # driver.get(url)
-    # time.sleep(1)
-    # xpath_val = "/html/body/div[2]/div/div[1]/div[3]/div/a[1]"
-    # driver.find_element_by_xpath(xpath_val).click()
-    # time.sleep(5)
-    # pict = driver.find_element_by_class_name("export-image").get_attribute("src")
-    # news_list.append(pict)
     pict = "https://finviz.com/map.ashx"
     news_list.append(pict)
 
@@ -167,6 +118,27 @@ def get_articles(news_msg):
 
     return news_msg
 
+# auto update chrome driver
+chromedriver_update()
+
+chrome_ver = AutoChrome.get_chrome_version().split('.')[0]
+path = os.path.join(os.getcwd(),chrome_ver)
+path = os.path.join(path,'chromedriver.exe')
+print(path)
+
+# -----------definition and basic setting-----------
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors')
+
+driver = webdriver.Chrome(path, options=options)
+
+# setting locale to use Korean
+locale.setlocale(locale.LC_ALL, '')
+
+# setting slack token
+MYTOKEN = ""
+    
 # create variable
 NEWS = ''
 
